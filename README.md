@@ -7,27 +7,26 @@ When the price of a tracked product falls below a desired value, users are notif
 
 The goal of this project is to automate price monitoring for online shoppers and help them save money by alerting them to price drops.
 
-
-
 ## Features
 
 - Track real-time prices of products from popular e-commerce platforms
-- Store tracked product details with desired price thresholds
-- Fetch product price periodically (scheduled or manual)
-- Notify user when current price is less than or equal to desired price
-- Support for multiple e-commerce websites (e.g., Amazon, Flipkart)
-
+- Store tracked product details with price history
+- Fetch product prices periodically (scheduled or manual)
+- RESTful API for easy integration
+- Support for Flipkart (more platforms coming soon)
+- Performance monitoring and caching
 
 ## Technology Stack
 
-- Python
-- Web scraping with BeautifulSoup/requests
-- Scheduler (cron/loop-based)
-- Email Notification (SMTP) or console logs
-- SQLite or local database
+- **Python 3.8+**
+- **Flask** - Web framework
+- **BeautifulSoup4** - Web scraping
+- **SQLite** - Database
 - **Flask-Caching** - In-memory caching for performance
 - **Flask-Compress** - gzip compression for API responses
-
+- **Flask-Limiter** - Rate limiting
+- **APScheduler** - Background task scheduling
+- **python-dotenv** - Environment configuration
 
 ## Performance Optimizations
 
@@ -39,7 +38,7 @@ This application implements several performance enhancements to achieve **25%+ i
 - **Cache Type**: SimpleCache (in-memory) for fast access
 
 ### 2. **Database Indexing**
-- Indexes on `product`, `date`, and `site+product` columns
+- Indexes on `product`, `timestamp`, and `product+timestamp` columns
 - Significantly faster query performance for historical data retrieval
 
 ### 3. **Response Compression**
@@ -51,26 +50,152 @@ This application implements several performance enhancements to achieve **25%+ i
 - Access performance metrics via `/performance` endpoint
 - Track cache hit/miss ratios
 
+### 5. **Error Handling & Retry Logic**
+- Automatic retry with exponential backoff for failed scrapes
+- Graceful error handling with proper HTTP status codes
+
 ### Expected Performance Gains
 - **First request (cold cache)**: Baseline performance
 - **Subsequent requests (warm cache)**: 40-60% faster response times
 - **Database queries with indexes**: 25-35% faster
 - **Overall average improvement**: **25%+** across all operations
 
+## Setup & Installation
 
-## Usage
-Configure tracked products
+### 1. Clone the repository
+```bash
+git clone <repository-url>
+cd E-commerce\ Price\ Tracker/backend
+```
 
-Add products you want to track in the database or file (depending on your app’s setup).
-Each entry should include:
-- Product name
-- Product URL
-- Desired price
+### 2. Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
+### 3. Configure environment (optional)
+```bash
+# Copy example environment file
+cp .env.example .env
+
+# Edit .env with your preferred settings
+# Default values work out of the box
+```
+
+### 4. Verify setup
+```bash
+python setup_check.py
+```
+
+### 5. Run the server
+```bash
+python app.py
+```
+
+The server will start on `http://localhost:5000`
+
+## Configuration
+
+All configuration is managed through environment variables. See `.env.example` for available options:
+
+- **PORT**: Server port (default: 5000)
+- **CORS_ORIGINS**: Allowed origins for CORS (comma-separated)
+- **CACHE_SCRAPER_TIMEOUT**: Cache duration for scraper results (seconds)
+- **SCRAPER_MAX_RETRIES**: Maximum retry attempts for failed scrapes
+- **SCHEDULER_INTERVAL_HOURS**: Hours between scheduled scrapes
+- **RATE_LIMIT_ENABLED**: Enable/disable rate limiting
+
+## API Endpoints
+
+### `GET /`
+Health check endpoint
+
+### `POST /track`
+Track a product's price
+```json
+{
+  "product": "laptop"
+}
+```
+
+### `GET /history/<product>`
+Get price history for a product
+- Query params: `limit` (optional)
+
+### `GET /latest`
+Get latest tracked products
+- Query params: `limit` (optional, default: 10, max: 100)
+
+### `GET /performance`
+Get performance statistics and metrics
+
+## Performance Testing
+
+Run the benchmark script to measure API performance:
+
+```bash
+python benchmark.py
+```
+
+This will test all endpoints and provide detailed performance metrics.
 
 ## How it Works (Behind The Scenes)
 
-- The price tracker fetches the product page using HTTP requests.
-- The webpage is parsed using BeautifulSoup to extract the latest price.
-- The extracted price is compared with the user’s desired price.
-- When the price meets the target condition, the app sends a notification.
+- The price tracker fetches the product page using HTTP requests
+- The webpage is parsed using BeautifulSoup to extract the latest price
+- Prices are stored in SQLite database with timestamps
+- Background scheduler automatically scrapes configured products every 6 hours
+- API endpoints provide access to current and historical price data
+- Caching layer reduces redundant scraping and improves response times
+
+## Project Structure
+
+```
+backend/
+├── app.py                    # Main Flask application
+├── config.py                 # Configuration management
+├── database.py               # Database operations
+├── performance_monitor.py    # Performance tracking
+├── benchmark.py              # Performance testing
+├── setup_check.py            # Setup validation
+├── requirements.txt          # Python dependencies
+├── .env.example             # Environment variables template
+├── scraper/
+│   └── flipkart_scraper.py  # Flipkart scraping logic
+└── templates/               # HTML templates (if any)
+```
+
+## Security Features
+
+- **CORS Protection**: Configurable allowed origins
+- **Rate Limiting**: Prevents API abuse
+- **Input Validation**: Sanitizes user inputs
+- **Error Handling**: Prevents information leakage
+
+## Troubleshooting
+
+### Dependencies not installed
+```bash
+pip install -r requirements.txt
+```
+
+### Database errors
+Delete `tracker.db` and restart the server to recreate the database.
+
+### Scraping fails
+- Check internet connection
+- Flipkart may have changed their HTML structure
+- Rate limiting may be in effect (retry after some time)
+
+## Future Enhancements
+
+- [ ] Support for more e-commerce platforms (Amazon, eBay)
+- [ ] Email/SMS notifications for price drops
+- [ ] User authentication and personalized tracking
+- [ ] Price prediction using ML
+- [ ] Web dashboard for visualization
+
+## License
+
+MIT License
+
