@@ -187,15 +187,5 @@ Delete `tracker.db` and restart the server to recreate the database.
 - Flipkart may have changed their HTML structure
 - Rate limiting may be in effect (retry after some time)
 
-## Future Enhancements
 
-- [ ] Support for more e-commerce platforms (Amazon, eBay)
-- [ ] Email/SMS notifications for price drops
-- [ ] User authentication and personalized tracking
-- [ ] Price prediction using ML
-- [ ] Web dashboard for visualization
-
-## License
-
-MIT License
 
